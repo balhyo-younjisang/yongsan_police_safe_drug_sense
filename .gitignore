@@ -1,0 +1,57 @@
+# Python 가상환경 디렉토리 무시
+safedrugsense_venv/
+
+# Byte-compiled / optimized / DLL 파일
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C 확장 빌드 결과물
+*.so
+
+# 테스트 및 배포 관련
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+*.log
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook 체크포인트
+.ipynb_checkpoints
+
+# Pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# pytest cache
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# VSCode 설정 파일 (선택적)
+.vscode/
+
+# 환경변수 파일 (선택적)
+.env
