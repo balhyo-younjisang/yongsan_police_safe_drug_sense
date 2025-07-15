@@ -4,19 +4,19 @@ from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+drug_slang_keywords = [
+    "스노우", "아이스", "백설탕", "밀크", "캔디", "크리스탈", "잔디", "해쉬", "블로우", "스피드",
+    "트립", "머쉬룸", "러브 드럭", "돌", "하이", "킥", "블루스", "K-파우더", "에셋", "피트",
+    "스톤드", "업", "다운", "롤링", "클라우드", "지니", "블랙 타르", "퍼프", "지그재그", "차",
+    "대마", "풀", "뽕", "버섯", "K", "물", "사탕", "빨간약", "약", "약물파티", "펑크", "향정",
+    "물약", "빨대", "두루마리", "마약먹방", "약쟁이",
+    "얼음", "눈", "물건", "작업물", "꽃", "그린", "고양이 사료", "젤리", "조명", "별",
+    "파우더", "설탕", "밀가루", "분말", "고양이약", "케"
+]
+
 class DcinsideSpiderSpider(scrapy.Spider):
     name = "dcinside_drug_spider"
     allowed_domains = ["dcinside.com", "gall.dcinside.com", "www.dcinside.com", "search.dcinside.com"]
-
-    drug_slang_keywords = [
-        "스노우", "아이스", "백설탕", "밀크", "캔디", "크리스탈", "잔디", "해쉬", "블로우", "스피드",
-        "트립", "머쉬룸", "러브 드럭", "돌", "하이", "킥", "블루스", "K-파우더", "에셋", "피트",
-        "스톤드", "업", "다운", "롤링", "클라우드", "지니", "블랙 타르", "퍼프", "지그재그", "차",
-        "대마", "풀", "뽕", "버섯", "K", "물", "사탕", "빨간약", "약", "약물파티", "펑크", "향정",
-        "물약", "빨대", "두루마리", "마약먹방", "약쟁이",
-        "얼음", "눈", "물건", "작업물", "꽃", "그린", "고양이 사료", "젤리", "조명", "별",
-        "파우더", "설탕", "밀가루", "분말", "고양이약", "케"
-    ]
     start_urls = [f"https://search.dcinside.com/post/q/{drug_slang}" for drug_slang in drug_slang_keywords]
     
     def __init__(self, *args, **kwargs):
@@ -33,7 +33,7 @@ class DcinsideSpiderSpider(scrapy.Spider):
         self.driver = webdriver.Chrome(options=chrome_options)
         # 수집 카운터 초기화
         self.keyword_post_counter = {}
-        self.max_posts_per_keyword = 30
+        self.max_posts_per_keyword = round(20000 / len(drug_slang_keywords))
 
     def closed(self, reason):
         self.driver.quit()

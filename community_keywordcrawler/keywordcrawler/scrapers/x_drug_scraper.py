@@ -25,7 +25,7 @@ since = "2025-07-01"
 until = "2025-07-15"
 
 # 키워드당 최대 수집 트윗 수
-max_results_per_keyword = 30
+max_results_per_keyword = round(20000 / len(drug_slang_keywords))
 
 # 트윗 텍스트 정제 함수
 def clean_text(text):

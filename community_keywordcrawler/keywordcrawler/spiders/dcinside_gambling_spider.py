@@ -4,25 +4,25 @@ from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+gambling_slang_keywords = [
+    "총알", "칩", "머니", "자금", "탄환",
+    "올인", "몰빵", "싹쓸이", "물타기", "역배",
+    "블랙잭", "바카라", "룰렛", "슬롯", "포커",
+    "따다", "먹다", "잭팟", "히트", "올킬",
+    "물리다", "털리다", "쪽박", "깡통",
+    "텔방", "놀이터", "토토", "사설", "메이저", "메이저사이트",
+    "물주", "VIP", "고래",
+    "조진다", "조지다", "조작판", "짜고친다", "구라판", "주작",
+    "총판", "총대", "업자", "운영자",
+    "배당률", "역배당", "주사위값",
+    "삽니다", "팔아요", "충전", "환전", "먹튀",
+    "빅뱅", "대판", "쎄게 간다", "풀베팅",
+    "한방"
+]
+
 class DcinsideGamblingSpiderSpider(scrapy.Spider):
     name = "dcinside_gambling_spider"
     allowed_domains = ["dcinside.com", "gall.dcinside.com", "www.dcinside.com", "search.dcinside.com"]
-
-    gambling_slang_keywords = [
-        "총알", "칩", "머니", "자금", "탄환",
-        "올인", "몰빵", "싹쓸이", "물타기", "역배",
-        "블랙잭", "바카라", "룰렛", "슬롯", "포커",
-        "따다", "먹다", "잭팟", "히트", "올킬",
-        "물리다", "털리다", "쪽박", "깡통",
-        "텔방", "놀이터", "토토", "사설", "메이저", "메이저사이트",
-        "물주", "VIP", "고래",
-        "조진다", "조지다", "조작판", "짜고친다", "구라판", "주작",
-        "총판", "총대", "업자", "운영자",
-        "배당률", "역배당", "주사위값",
-        "삽니다", "팔아요", "충전", "환전", "먹튀",
-        "빅뱅", "대판", "쎄게 간다", "풀베팅",
-        "한방"
-    ]
     start_urls = [f"https://search.dcinside.com/post/q/{gambling_slang}" for gambling_slang in gambling_slang_keywords]
     
     def __init__(self, *args, **kwargs):
@@ -40,7 +40,7 @@ class DcinsideGamblingSpiderSpider(scrapy.Spider):
 
         # 수집 카운터 초기화
         self.keyword_post_counter = {}
-        self.max_posts_per_keyword = 30
+        self.max_posts_per_keyword = round(20000 / len(gambling_slang_keywords))
 
     def closed(self, reason):
         self.driver.quit()
