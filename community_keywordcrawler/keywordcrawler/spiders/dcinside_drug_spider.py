@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 class DcinsideSpiderSpider(scrapy.Spider):
-    name = "dcinside_spider"
+    name = "dcinside_drug_spider"
     allowed_domains = ["dcinside.com", "gall.dcinside.com", "www.dcinside.com", "search.dcinside.com"]
 
     drug_slang_keywords = [
@@ -18,13 +18,12 @@ class DcinsideSpiderSpider(scrapy.Spider):
         "파우더", "설탕", "밀가루", "분말", "고양이약", "케"
     ]
     start_urls = [f"https://search.dcinside.com/post/q/{drug_slang}" for drug_slang in drug_slang_keywords]
-    # start_urls = ['https://search.dcinside.com/post/q/.EC.8B.B1.EA.B8.80.EB.B2.99.EA.B8.80.20.ED.95.A8.EB.B6.80.EB.A1.9C.20.EC.95.94.ED.91.9C.EC.9D.84.20.EC.82.AC.EB.A9.B4.20.EC.95.88.EB.90.98.EB.8A.94.20.EC.9D.B4.EC.9C.A0.2E.2E.2E.2E.2E']
-
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         chrome_options = Options()
-        # chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--lang=ko-KR")
@@ -32,15 +31,27 @@ class DcinsideSpiderSpider(scrapy.Spider):
         chrome_options.add_argument("user-agent=Mozilla/5.0")
 
         self.driver = webdriver.Chrome(options=chrome_options)
+        # 수집 카운터 초기화
+        self.keyword_post_counter = {}
+        self.max_posts_per_keyword = 30
 
     def closed(self, reason):
         self.driver.quit()
 
     def parse(self, response):
+         # 현재 검색 중인 키워드 추출
+        keyword = response.url.split("/q/")[-1]
+        self.keyword_post_counter.setdefault(keyword, 0)
+        
         for post in response.css("ul.sch_result_list li"):
+            if self.keyword_post_counter[keyword] >= self.max_posts_per_keyword:
+                print(f"[INFO] Reached limit for keyword: {keyword}")
+                break
+
             post_url = post.css('a::attr(href)').get()
             if post_url:
-                yield response.follow(post_url, self.parse_post)
+                    self.keyword_post_counter[keyword] += 1
+                    yield response.follow(post_url, self.parse_post)
 
     def parse_post(self, response):
         url = response.url
@@ -96,5 +107,6 @@ class DcinsideSpiderSpider(scrapy.Spider):
             "author": author,
             "date": date,
             "content": content_cleaned,
-            "comments": all_comments
+            "comments": all_comments,
+            "type": "drug"
         }
