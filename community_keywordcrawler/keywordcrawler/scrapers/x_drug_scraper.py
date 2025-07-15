@@ -1,8 +1,13 @@
-import snscrape.modules.twitter as sntwitter  # 트위터 크롤링 모듈
-import re  # 텍스트 정제용
-import time  # 대기 시간 제어
-import random  # 랜덤 대기 시간 설정
-import json  # 결과 저장용
+import snscrape.modules.twitter as sntwitter
+import re
+import time
+import random
+import pymongo
+
+# MongoDB 설정
+client = pymongo.MongoClient("mongodb://localhost:27017/")
+db = client["safedrugsense_crawl_data"]
+collection = db["x_drug"]
 
 # 마약 은어 키워드 목록
 drug_slang_keywords = [
@@ -15,8 +20,6 @@ drug_slang_keywords = [
     "파우더", "설탕", "밀가루", "분말", "고양이약", "케"
 ]
 
-results = []
-
 # 검색 기간 설정
 since = "2025-07-01"
 until = "2025-07-15"
@@ -24,10 +27,12 @@ until = "2025-07-15"
 # 키워드당 최대 수집 트윗 수
 max_results_per_keyword = 30
 
-# 트윗 텍스트 정제 함수 (불필요한 공백 제거)
+# 트윗 텍스트 정제 함수
 def clean_text(text):
     text = re.sub(r"\s+", " ", text)
     return text.strip()
+
+total_collected = 0
 
 # 키워드별 트윗 수집 루프
 for keyword in drug_slang_keywords:
@@ -40,8 +45,8 @@ for keyword in drug_slang_keywords:
             if count >= max_results_per_keyword:
                 break
 
-            # 수집된 트윗을 구조화하여 저장
-            results.append({
+            # 수집된 트윗을 MongoDB에 바로 저장
+            tweet_data = {
                 "site": "X",
                 "url": tweet.url,
                 "author": tweet.user.username,
@@ -50,8 +55,9 @@ for keyword in drug_slang_keywords:
                 "type": "drug",
                 "comments": None,
                 "title": None
-            })
-
+            }
+            collection.insert_one(tweet_data)
+            total_collected += 1
             count += 1
 
         # IP 차단 방지를 위한 랜덤 대기
@@ -66,9 +72,8 @@ for keyword in drug_slang_keywords:
         time.sleep(10)
 
 # 수집 완료 후 출력
-print(f"[DONE] Total tweets collected: {len(results)}")
+print(f"[DONE] Total tweets collected and saved to MongoDB: {total_collected}")
 
-# JSON 파일로 저장
-with open("x_drug.json", "w", encoding="utf-8") as f:
-    json.dump(results, f, ensure_ascii=False, indent=2)
-    print("[SAVE] Results saved to x_drug.json")
+# MongoDB 연결 종료
+client.close()
+

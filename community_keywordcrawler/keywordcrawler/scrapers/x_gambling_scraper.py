@@ -1,10 +1,15 @@
-import snscrape.modules.twitter as sntwitter  # 트위터 크롤링 모듈
-import re  # 텍스트 정제용
-import time  # 대기 시간 제어
-import random  # 랜덤 대기 시간 설정
-import json  # 결과 저장용
+import snscrape.modules.twitter as sntwitter
+import re
+import time
+import random
+import pymongo
 
-# 마약 은어 키워드 목록
+# MongoDB 설정
+client = pymongo.MongoClient("mongodb://localhost:27017/")
+db = client["safedrugsense_crawl_data"]
+collection = db["x_gambling"]
+
+# 도박 은어 키워드 목록
 gambling_slang_keywords = [
     "총알", "칩", "머니", "자금", "탄환",
     "올인", "몰빵", "싹쓸이", "물타기", "역배",
@@ -20,8 +25,6 @@ gambling_slang_keywords = [
     "한방"
 ]
 
-results = []
-
 # 검색 기간 설정
 since = "2025-07-01"
 until = "2025-07-15"
@@ -29,10 +32,12 @@ until = "2025-07-15"
 # 키워드당 최대 수집 트윗 수
 max_results_per_keyword = 30
 
-# 트윗 텍스트 정제 함수 (불필요한 공백 제거)
+# 트윗 텍스트 정제 함수
 def clean_text(text):
     text = re.sub(r"\s+", " ", text)
     return text.strip()
+
+total_collected = 0
 
 # 키워드별 트윗 수집 루프
 for keyword in gambling_slang_keywords:
@@ -45,18 +50,19 @@ for keyword in gambling_slang_keywords:
             if count >= max_results_per_keyword:
                 break
 
-            # 수집된 트윗을 구조화하여 저장
-            results.append({
+            # 수집된 트윗을 MongoDB에 바로 저장
+            tweet_data = {
                 "site": "X",
                 "url": tweet.url,
                 "author": tweet.user.username,
                 "date": tweet.date.isoformat(),
                 "content": clean_text(tweet.content),
-                "type": "drug",
+                "type": "gambling",
                 "comments": None,
                 "title": None
-            })
-
+            }
+            collection.insert_one(tweet_data)
+            total_collected += 1
             count += 1
 
         # IP 차단 방지를 위한 랜덤 대기
@@ -71,9 +77,8 @@ for keyword in gambling_slang_keywords:
         time.sleep(10)
 
 # 수집 완료 후 출력
-print(f"[DONE] Total tweets collected: {len(results)}")
+print(f"[DONE] Total tweets collected and saved to MongoDB: {total_collected}")
 
-# JSON 파일로 저장
-with open("x_gambling.json", "w", encoding="utf-8") as f:
-    json.dump(results, f, ensure_ascii=False, indent=2)
-    print("[SAVE] Results saved to x_gambling.json")
+# MongoDB 연결 종료
+client.close()
+

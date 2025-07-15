@@ -64,9 +64,12 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "keywordcrawler.pipelines.KeywordcrawlerPipeline": 300,
-#}
+ITEM_PIPELINES = {
+   "keywordcrawler.pipelines.MongoPipeline": 300,
+}
+
+MONGO_URI = "mongodb://localhost:27017/"
+MONGO_DATABASE = "safedrugsense_crawl_data"
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
